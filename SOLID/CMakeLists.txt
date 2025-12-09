@@ -1,0 +1,6 @@
+project(SOLID LANGUAGES CXX)
+
+file(GLOB_RECURSE SRCS CONFIGURE_DEPENDS src/*.cpp)
+file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS inc/*.h)
+
+add_executable_with_pch(${PROJECT_NAME} ${SRCS})
