@@ -1,13 +1,11 @@
 #include <DIP/dip.h>
 
 int main() {
-    auto logger = std::make_shared<ConsoleLogger>();
+    auto logger = injector.create<std::shared_ptr<ILogger>>();
     Reporting reporting(*logger);
     reporting.generate_report();
 
-    auto car = injector.create<Car>();
-
-    // Car car(std::make_unique<Engine>(), logger);
-    std::cout << car << '\n';
+    auto car = injector.create<std::unique_ptr<Car>>();
+    std::cout << *car << '\n';
     return 0;
 }

@@ -28,24 +28,24 @@ template <class Interface>
 
 template <class... Bindings>
 struct injector {
-    template <class Interface>
-    [[nodiscard]] auto create() const -> std::shared_ptr<Interface> {
-        return create_impl<Interface, Bindings...>();
+    template <class T>
+    [[nodiscard]] auto create() const -> std::shared_ptr<T> {
+        return create_impl<T, Bindings...>();
     }
 
    private:
-    template <class Interface>
-    [[nodiscard]] static auto create_impl() -> std::shared_ptr<Interface> {
-        static_assert(!std::is_same<Interface, Interface>::value, "No binding found for requested interface type");
+    template <class T>
+    [[nodiscard]] static auto create_impl() -> std::shared_ptr<T> {
+        static_assert(!std::is_same<T, T>::value, "No binding found for requested interface type");
         return {};
     }
 
-    template <class Interface, class First, class... Rest>
-    [[nodiscard]] static auto create_impl() -> std::shared_ptr<Interface> {
-        if constexpr (std::is_same_v<typename First::interface_type, Interface>) {
+    template <class T, class First, class... Rest>
+    [[nodiscard]] static auto create_impl() -> std::shared_ptr<T> {
+        if constexpr (std::is_same_v<typename First::interface_type, T>) {
             return std::make_shared<typename First::implementation_type>();
         } else {
-            return create_impl<Interface, Rest...>();
+            return create_impl<T, Rest...>();
         }
     }
 };
@@ -72,17 +72,57 @@ struct ConsoleLogger : ILogger {
     void log(const std::string& message) noexcept override { std::cout << message << '\n'; }
 };
 
-struct Engine {
+struct IEngine {
+    IEngine() = default;
+    IEngine(const IEngine&) = default;
+    IEngine& operator=(const IEngine&) = default;
+    IEngine(IEngine&&) = default;
+    IEngine& operator=(IEngine&&) = default;
+    virtual ~IEngine() = default;
+
+    virtual void print(std::ostream& output_stream) const noexcept = 0;
+};
+
+inline std::ostream& operator<<(std::ostream& output_stream, const IEngine& engine) noexcept {
+    engine.print(output_stream);
+    return output_stream;
+}
+
+struct GasEngine final : IEngine {
     static constexpr float kDefaultVolume = 5.0F;
     static constexpr int kDefaultHorsePower = 400;
 
-    float volume = kDefaultVolume;
-    int horse_power = kDefaultHorsePower;
+    class Config {
+       public:
+        Config() = default;  // 关键：让类型“非聚合”，Boost.DI 会直接调用默认构造，而不是给 float/int 注入 0
 
-    friend std::ostream& operator<<(std::ostream& output_stream, const Engine& engine) noexcept {
-        output_stream << "Volume: " << engine.volume << ", Horse power: " << engine.horse_power;
-        return output_stream;
-    }
+        [[nodiscard]] float volume() const noexcept { return volume_; }
+        [[nodiscard]] int horse_power() const noexcept { return horse_power_; }
+
+       private:
+        float volume_ = kDefaultVolume;
+        int horse_power_ = kDefaultHorsePower;
+    };
+
+    explicit GasEngine(Config config) : volume_(config.volume()), horse_power_(config.horse_power()) {}
+    GasEngine() = default;
+
+    void print(std::ostream& output_stream) const noexcept override { output_stream << "GasEngine{volume=" << volume_ << ", horse_power=" << horse_power_ << "}"; }
+
+   private:
+    float volume_ = kDefaultVolume;
+    int horse_power_ = kDefaultHorsePower;
+};
+
+struct ElectricEngine final : IEngine {
+    static constexpr int kDefaultKw = 150;
+    explicit ElectricEngine(int kilowatts) : kw_(kilowatts) {}
+    ElectricEngine() = default;
+
+    void print(std::ostream& output_stream) const noexcept override { output_stream << "ElectricEngine{kw=" << kw_ << "}"; }
+
+   private:
+    int kw_ = kDefaultKw;
 };
 class Reporting {
    public:
@@ -95,7 +135,7 @@ class Reporting {
 
 class Car {
    public:
-    Car(std::unique_ptr<Engine> engine, std::shared_ptr<ILogger> logger) : engine_(std::move(engine)), logger_(std::move(logger)) { logger_->log("Car created"); }
+    Car(std::unique_ptr<IEngine> engine, std::shared_ptr<ILogger> logger) : engine_(std::move(engine)), logger_(std::move(logger)) { logger_->log("Car created"); }
     // void start() noexcept { engine_->start(); }
     // void stop() noexcept { engine_->stop(); }
     // void drive() noexcept { engine_->drive(); }
@@ -111,8 +151,8 @@ class Car {
     }
 
    private:
-    std::unique_ptr<Engine> engine_;
+    std::unique_ptr<IEngine> engine_;
     std::shared_ptr<ILogger> logger_;
 };
 
-inline const auto injector = di::make_injector(di::bind<ILogger>().to<ConsoleLogger>());
+inline const auto injector = di::make_injector(di::bind<ILogger>().to<ConsoleLogger>(), di::bind<IEngine>().to<GasEngine>());
