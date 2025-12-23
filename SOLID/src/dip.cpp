@@ -5,7 +5,9 @@ int main() {
     Reporting reporting(*logger);
     reporting.generate_report();
 
-    Car car(std::make_unique<Engine>(), logger);
+    auto car = injector.create<Car>();
+
+    // Car car(std::make_unique<Engine>(), logger);
     std::cout << car << '\n';
     return 0;
 }
