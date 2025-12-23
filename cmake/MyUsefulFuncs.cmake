@@ -68,3 +68,9 @@ function(add_generate_compile_commands_target PS_VERSION)
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     )
 endfunction()
+
+function(make_exe target_name)
+    add_executable(${target_name} ${ARGN})
+    target_include_directories(${target_name} PRIVATE ${PROJECT_SOURCE_DIR}/inc)
+    target_precompile_headers(${target_name} PRIVATE ${PROJECT_SOURCE_DIR}/inc/pch.h)
+endfunction()

@@ -10,17 +10,19 @@ find_package(Boost REQUIRED COMPONENTS filesystem system)
 file(GLOB_RECURSE SRCS CONFIGURE_DEPENDS src/*.cpp)
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS inc/*.h)
 
-add_executable(${PROJECT_NAME} ${SRCS} ${HEADERS})
+set(SRPTARGET ${PROJECT_NAME}_srp)
+make_exe(${SRPTARGET} ${HEADERS} src/srp.cpp)
 target_include_directories(
-    ${PROJECT_NAME}
+    ${SRPTARGET}
     PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc
     ${Boost_INCLUDE_DIRS}
 )
 target_link_libraries(
-    ${PROJECT_NAME}
+    ${SRPTARGET}
     PRIVATE
     Boost::filesystem
     Boost::system
 )
-target_precompile_headers(${PROJECT_NAME} PRIVATE inc/pch.h)
+
+set(OCPTARGET ${PROJECT_NAME}_ocp)
+make_exe(${OCPTARGET} ${HEADERS} src/ocp.cpp)
