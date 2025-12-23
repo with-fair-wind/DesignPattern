@@ -2,7 +2,6 @@
 
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem.hpp>
-#include <fstream>
 
 class Journal {
    public:
