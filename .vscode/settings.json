@@ -1,0 +1,4 @@
+{
+  "cmake.outputLogEncoding": "utf-8",
+  "cmake.generator": "Ninja" // 使用 Ninja 作为生成器
+}
