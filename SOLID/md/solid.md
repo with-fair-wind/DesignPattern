@@ -16,3 +16,4 @@ SOLID 是一个首字母缩写，代表以下设计原则（及其缩写）：
 
 *A. High-level modules should not depend on low-level modules. Both should depend on abstractions*.(高层模块不应该依赖低层模块，两个都应该依赖抽象)
 *B. Abstractions should not depend on details. Details should depend on abstractions.*(抽象不应该依赖细节，细节应该依赖抽象)
+

@@ -19,3 +19,4 @@ include(MyUsefulFuncs)
 project(DesignPatterns LANGUAGES CXX)
 
 add_subdirectory(SOLID)
+add_subdirectory(Builder)
